@@ -19,7 +19,7 @@ maintainer:         fumiexcel@gmail.com
 -- A copyright notice.
 copyright:          Copyright (c) 2021 Fumiaki Kinoshita
 category:           Concurrency
-extra-source-files: CHANGELOG.md, READNE.md
+extra-source-files: CHANGELOG.md, README.md
 
 library
     exposed-modules: Oath
