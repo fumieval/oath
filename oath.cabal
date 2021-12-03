@@ -1,6 +1,6 @@
 cabal-version:      2.4
 name:               oath
-version:            0.1
+version:            0.0
 
 -- A short (one-line) description of the package.
 synopsis:           Composable concurrent computation done right
@@ -12,7 +12,7 @@ description:        See README.md for details
 bug-reports:        https://github.com/fumieval/oath
 
 -- The license under which the package is released.
--- license:
+license:            BSD-3-Clause
 author:             Fumiaki Kinoshita
 maintainer:         fumiexcel@gmail.com
 
@@ -21,6 +21,10 @@ copyright:          Copyright (c) 2021 Fumiaki Kinoshita
 category:           Concurrency
 extra-source-files: CHANGELOG.md, README.md
 
+source-repository head
+  type: git
+  location: https://github.com/fumieval/oath.git
+
 library
     exposed-modules: Oath
     -- Modules included in this executable, other than Main.
@@ -28,7 +32,7 @@ library
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
-    build-depends:    base >=4.14.1.0, stm, stm-delay
+    build-depends:    base >=4.14.1.0 && <4.17, stm, stm-delay
     hs-source-dirs:   src
     default-language: Haskell2010
     ghc-options: -Wall -Wcompat
