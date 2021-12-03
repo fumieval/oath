@@ -43,7 +43,7 @@ oathSTM :: IO a -> Oath STM a
 oathSTM act = Oath $ \cont -> do
   v <- newEmptyTMVarIO
   tid <- forkFinally act (atomically . putTMVar v)
-  let await = takeTMVar v >>= either throwSTM pure
+  let await = readTMVar v >>= either throwSTM pure
   cont await `finally` killThread tid
 
 -- | Like 'oathSTM', but the result is 'IO'
@@ -51,7 +51,7 @@ oathIO :: IO a -> Oath IO a
 oathIO act = Oath $ \cont -> do
   v <- newEmptyMVar
   tid <- forkFinally act (putMVar v)
-  let await = takeMVar v >>= either throwIO pure
+  let await = readMVar v >>= either throwIO pure
   cont await `finally` killThread tid
 
 -- | An 'Oath' that finishes once the given number of microseconds elapses
