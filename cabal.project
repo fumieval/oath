@@ -1,0 +1,4 @@
+packages: ./
+allow-newer:
+  promise:base,
+  promise:async
