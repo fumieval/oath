@@ -1,5 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DerivingVia #-}
 module Oath
   ( Oath(..)
   , hoistOath
@@ -14,10 +15,12 @@ import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Concurrent.STM.Delay
 import Control.Exception
+import Data.Monoid
 
 -- 'Oath' is an 'Applicative' structure that collects results of one or more computations.
 newtype Oath m a = Oath { runOath :: forall r. (m a -> IO r) -> IO r }
   deriving Functor
+  deriving (Semigroup, Monoid) via Ap (Oath m) a
 
 hoistOath :: (forall x. m x -> n x) -> Oath m a -> Oath n a
 hoistOath t (Oath m) = Oath $ \cont -> m $ cont . t
