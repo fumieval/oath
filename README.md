@@ -52,9 +52,9 @@ oath action <|> delay 100000
 Comparison to other packages
 ----
 
-[future](https://hackage.haskell.org/package/future-2.0.0/docs/Control-Concurrent-Future.html), [caf](https://hackage.haskell.org/package/caf-0.0.3/docs/Control-Concurrent-Futures.html) and [async](https://hackage.haskell.org/package/async-2.2.4/docs/Control-Concurrent-Async.html) seem solve the same problem. They define abstractions to asynchronous computations. `async` has an applicative `Concurrently` wrapper which forks threads twice the number of terms for `(<*>)` and `(<|>)`. `async` is the most maintained.
+[future](https://hackage.haskell.org/package/future-2.0.0/docs/Control-Concurrent-Future.html), [caf](https://hackage.haskell.org/package/caf-0.0.3/docs/Control-Concurrent-Futures.html) and [async](https://hackage.haskell.org/package/async-2.2.4/docs/Control-Concurrent-Async.html) seem solve the same problem. They define abstractions to asynchronous computations. `async` has an applicative `Concurrently` wrapper.
 
-[spawn](https://hackage.haskell.org/package/spawn-0.3/docs/Control-Concurrent-Spawn.html) does not define any datatype and provides an utility function for `IO`. It does not offer a way to cancel a computation.
+[spawn](https://hackage.haskell.org/package/spawn-0.3/docs/Control-Concurrent-Spawn.html) does not define any datatype. Instead it provides an utility function for `IO` (`spawn :: IO a -> IO (IO a)`). It does not offer a way to cancel a computation.
 
 [promises](https://hackage.haskell.org/package/promises-0.3/docs/Data-Promise.html) provides a monadic interface for pure demand-driven computation. It has nothing to do with concurrency.
 
@@ -63,3 +63,25 @@ Comparison to other packages
 [futures](https://hackage.haskell.org/package/futures-0.1/docs/Futures.html) provides a wrapper of `forkIO`. There is no way to terminate an action and it does not propagate exceptions.
 
 [promise](https://hackage.haskell.org/package/promise-0.1.0.0/docs/Control-Concurrent-Promise.html) has illegal Applicative and Monad instances; `(<*>)` is not associative and has a bind that's not consistent with `(<*>).`
+
+Performance
+----
+
+```haskell
+bench "oath 10" $ nfIO $ O.evalOath $ traverse (O.oath . pure) [0 :: Int ..9]
+bench "async 10" $ nfIO $ A.runConcurrently $ traverse (A.Concurrently . pure) [0 :: Int ..9]
+```
+
+`Oath`'s overhead of `(<*>)` is less than `Concurrently`. Unlike `Concurrently`, compositions themselves do not fork threads unlike `Concurrently` which does twice the number of terms.
+
+```
+All
+  oath 10:   OK (1.63s)
+    5.78 μs ± 265 ns
+  async 10:  OK (0.21s)
+    12.3 μs ± 767 ns
+  oath 100:  OK (0.22s)
+    52.6 μs ± 4.4 μs
+  async 100: OK (0.23s)
+    109  μs ± 8.4 μs
+```
