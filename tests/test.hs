@@ -32,13 +32,14 @@ tester run lift = do
     print' :: Either SomeException () -> IO ()
     print' = putStrLn . ("    "++) . show
 
+main :: IO ()
 main = do
   putStrLn "oath timeout:"
-  Oath.evalOathSTM $ Oath.oathSTM (action 0 "delay" 1.0) <|> Oath.delaySTM 200000
+  Oath.evalOath $ Oath.oath (action 0 "delay" 1.0) <|> Oath.delay 200000
   threadDelay 10000
 
   putStrLn "oath: "
-  tester Oath.evalOathSTM Oath.oathSTM
+  tester Oath.evalOath Oath.oath
   putStrLn "async: "
   tester Async.runConcurrently Async.Concurrently
   putStrLn "futures:"
