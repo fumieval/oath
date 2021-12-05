@@ -1,7 +1,7 @@
 Oath: composable concurrent computation done right
 ----
 
-Oath is an interface that makes concurrent actions composable.
+Oath is an Applicative structures that makes concurrent actions composable.
 
 ```haskell
 newtype Oath a = Oath { runOath :: forall r. (STM a -> IO r) -> IO r }
@@ -72,7 +72,7 @@ bench "oath 10" $ nfIO $ O.evalOath $ traverse (O.oath . pure) [0 :: Int ..9]
 bench "async 10" $ nfIO $ A.runConcurrently $ traverse (A.Concurrently . pure) [0 :: Int ..9]
 ```
 
-`Oath`'s overhead of `(<*>)` is less than `Concurrently`. Unlike `Concurrently`, compositions themselves do not fork threads unlike `Concurrently` which does twice the number of terms.
+`Oath`'s overhead of `(<*>)` is less than `Concurrently`. Unlike `Concurrently`, `<*>` itself does not fork threads.
 
 ```
 All
