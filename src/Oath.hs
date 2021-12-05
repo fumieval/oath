@@ -6,7 +6,8 @@ module Oath
   , hoistOath
   , evalOath
   , oath
-  , delay) where
+  , delay
+  , timeout) where
 
 import Control.Applicative
 import Control.Concurrent
@@ -47,3 +48,7 @@ oath act = Oath $ \cont -> do
 -- | An 'Oath' that finishes once the given number of microseconds elapses
 delay :: Int -> Oath ()
 delay dur = Oath $ \cont -> bracket (newDelay dur) cancelDelay (cont . waitDelay)
+
+-- | Wrap an 'Oath'
+timeout :: Int -> Oath a -> Oath (Maybe a)
+timeout dur m = Just <$> m <|> Nothing <$ delay dur
