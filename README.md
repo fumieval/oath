@@ -4,27 +4,29 @@ Oath: composable concurrent computation done right
 Oath is an interface that makes concurrent actions composable.
 
 ```haskell
-newtype Oath m a = Oath { runOath :: forall r. (m a -> IO r) -> IO r }
+newtype Oath a = Oath { runOath :: forall r. (STM a -> IO r) -> IO r }
 ```
 
-`Oath` is a continuation-passing IO action which takes an action to obtain the final result (`m a`).
+`Oath` is a continuation-passing IO action which takes a transaction to obtain the final result (`STM a`).
 The continuation-passing style makes it easier to release resources in time.
-The easiest way to construct `Oath` is `oathSTM`. It run the supplied action in a separate thread as long as the continuation is running.
+The easiest way to construct `Oath` is `oath`. It run the supplied action in a separate thread as long as the continuation is running.
 
 ```haskell
-oathSTM :: IO a -> Oath STM a
-oathSTM act = Oath $ \cont -> do
+oath :: IO a -> Oath a
+oath act = Oath $ \cont -> do
   v <- newEmptyTMVarIO
   tid <- forkFinally act (atomically . putTMVar v)
   let await = takeTMVar v >>= either throwSTM pure
   cont await `finally` killThread tid
+
+evalOath :: Oath a -> IO a
+evalOath m = runOath m atomically
 ```
 
-`Oath` is an `Applicative`, so you can combine multiple `Oath`s. It starts computations without waiting for the results. Run `evalOathSTM` to get the final result:
+`Oath` is an `Applicative`, so you can combine multiple `Oath`s. It starts computations without waiting for the results. Run `evalOathSTM` to get the final result. The following code run concurrently `foo :: IO a` and `bar :: IO b`, then applies `f` to these results.
 
 ```haskell
-evalOathSTM :: Oath STM a -> IO a
-evalOathSTM m = runOath m atomically
+main = evalOath $ f <$> oath foo <*> oath bar
 ```
 
 It _does not_ provide a Monad instance because it is logically impossible to define one consistent with the Applicative instance.
@@ -38,13 +40,13 @@ Usage
 Oath $ \cont -> bracket sendRequest cancelRequest (cont . waitForResponse)
 ```
 
-Timeout behaviour can be easily added using the `Alternative` instance and `delaySTM`. Or more in general, `<|>` expresses race
+Timeout behaviour can be easily added using the `Alternative` instance and `delay :: Int -> Oath ()`. Or more in general, `<|>` runs both computations until one of them finishes.
 
 ```haskell
 -- | An 'Oath' that finishes once the given number of microseconds elapses
-delaySTM :: Int -> Oath STM ()
+delay :: Int -> Oath ()
 
-oathSTM action <|> delaySTM 100000
+oath action <|> delay 100000
 ```
 
 Comparison to other packages
