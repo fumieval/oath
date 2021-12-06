@@ -23,7 +23,7 @@ evalOath :: Oath a -> IO a
 evalOath m = runOath m atomically
 ```
 
-`Oath` is an `Applicative`, so you can combine multiple `Oath`s. It starts computations without waiting for the results. Run `evalOathSTM` to get the final result. The following code run concurrently `foo :: IO a` and `bar :: IO b`, then applies `f` to these results.
+`Oath` is an `Applicative`, so you can combine multiple `Oath`s. It starts computations without waiting for the results. Run `evalOath` to get the final result. The following code run concurrently `foo :: IO a` and `bar :: IO b`, then applies `f` to these results.
 
 ```haskell
 main = evalOath $ f <$> oath foo <*> oath bar
@@ -34,7 +34,7 @@ It _does not_ provide a Monad instance because it is logically impossible to def
 Usage
 ----
 
-`Oath` abstracts a triple of sending a request, waiting for response, and cancelling a request. If you want to send requests in a deterministic order, you can construct `Oath` directly instead of calling `oathSTM`.
+`Oath` abstracts a triple of sending a request, waiting for response, and cancelling a request. If you want to send requests in a deterministic order, you can construct `Oath` directly instead of calling `oath`.
 
 ```haskell
 Oath $ \cont -> bracket sendRequest cancelRequest (cont . waitForResponse)
