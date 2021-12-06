@@ -44,6 +44,7 @@ test-suite test
         , promise
         , oath
         , async
+        , streamly
     type: exitcode-stdio-1.0
     hs-source-dirs: tests
     default-language: Haskell2010
@@ -54,6 +55,6 @@ benchmark bench
     type:                exitcode-stdio-1.0
     main-is:             bench.hs
     hs-source-dirs:      benchmarks
-    build-depends:       base, tasty-bench, oath, async
+    build-depends:       base, tasty-bench, oath, async, streamly
     ghc-options:         -Wall -threaded -O2
     default-language:    Haskell2010

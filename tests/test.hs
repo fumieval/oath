@@ -7,6 +7,8 @@ import Control.Applicative
 import Control.Concurrent
 import Control.Exception
 import Data.Functor.Compose
+import qualified Streamly.Prelude as S
+import Control.Monad
 
 action :: Int -> String -> Double -> IO ()
 action order name dur = do
@@ -46,6 +48,8 @@ main = do
   tester ((>>=Futures.block) . getCompose) (Compose . Futures.fork)
   putStrLn "promise:"
   tester Promise.runPromise Promise.liftIO
+  putStrLn "streamly:"
+  tester (void . S.toList . S.fromZipAsync) S.fromEffect
 
   -- random
   putStrLn "unsafe-promises:"
