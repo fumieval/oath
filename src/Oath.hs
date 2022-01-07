@@ -5,6 +5,7 @@ module Oath
   ( Oath(..)
   , hoistOath
   , evalOath
+  , tryOath
   , oath
   , delay
   , timeout) where
@@ -21,16 +22,20 @@ newtype Oath a = Oath { runOath :: forall r. (STM a -> IO r) -> IO r }
   deriving Functor
   deriving (Semigroup, Monoid) via Ap Oath a
 
-hoistOath :: (forall x. STM x -> STM x) -> Oath a -> Oath a
+hoistOath :: (STM a -> STM b) -> Oath a -> Oath b
 hoistOath t (Oath m) = Oath $ \cont -> m $ cont . t
 
 evalOath :: Oath a -> IO a
 evalOath m = runOath m atomically
 
+tryOath :: Exception e => Oath a -> Oath (Either e a)
+tryOath = hoistOath $ \t -> fmap Right t `catchSTM` (pure . Left)
+
 instance Applicative Oath where
   pure a = Oath $ \cont -> cont (pure a)
   Oath m <*> Oath n = Oath $ \cont -> m $ \f -> n $ \x -> cont (f <*> x)
 
+-- | ('<|>') waits for the first result, then cancel the loser
 instance Alternative Oath where
   empty = Oath $ \cont -> cont empty
   Oath m <|> Oath n = Oath $ \cont -> m $ \a -> n $ \b -> cont (a <|> b)
@@ -49,6 +54,6 @@ oath act = Oath $ \cont -> do
 delay :: Int -> Oath ()
 delay dur = Oath $ \cont -> bracket (newDelay dur) cancelDelay (cont . waitDelay)
 
--- | Wrap an 'Oath'
+-- | Returns nothing if the 'Oath' does not finish within the given number of microseconds.
 timeout :: Int -> Oath a -> Oath (Maybe a)
 timeout dur m = Just <$> m <|> Nothing <$ delay dur

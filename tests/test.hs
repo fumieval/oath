@@ -47,7 +47,7 @@ main = do
   tester ((>>=Futures.block) . getCompose) (Compose . Futures.fork)
 
   putStrLn "streamly:"
-  tester (S.drain . S.fromZipAsync) S.fromEffect
+  tester (S.drain . S.fromZipAsync . S.fromAhead) S.fromEffect
 
   putStrLn "promise:"
   tester Promise.runPromise Promise.liftIO
