@@ -22,15 +22,19 @@ newtype Oath a = Oath { runOath :: forall r. (STM a -> IO r) -> IO r }
   deriving Functor
   deriving (Semigroup, Monoid) via Ap Oath a
 
+-- | Apply a function to the inner computation that waits for the result.
 hoistOath :: (STM a -> STM b) -> Oath a -> Oath b
 hoistOath t (Oath m) = Oath $ \cont -> m $ cont . t
 
+-- | Run an 'Oath' and wait for the result.
 evalOath :: Oath a -> IO a
 evalOath m = runOath m atomically
 
+-- | Catch an exception thrown in the inner computation.
 tryOath :: Exception e => Oath a -> Oath (Either e a)
 tryOath = hoistOath $ \t -> fmap Right t `catchSTM` (pure . Left)
 
+-- | ('<*>') initiates both computations, then combines the results once they are done
 instance Applicative Oath where
   pure a = Oath $ \cont -> cont (pure a)
   Oath m <*> Oath n = Oath $ \cont -> m $ \f -> n $ \x -> cont (f <*> x)
