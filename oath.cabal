@@ -17,7 +17,7 @@ author:             Fumiaki Kinoshita
 maintainer:         fumiexcel@gmail.com
 
 -- A copyright notice.
-copyright:          Copyright (c) 2021 Fumiaki Kinoshita
+copyright:          Copyright (c) 2022 Fumiaki Kinoshita
 category:           Concurrency
 extra-source-files: CHANGELOG.md, README.md
 
@@ -32,7 +32,7 @@ library
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
-    build-depends:    base >=4.14.1.0 && <4.17, stm, stm-delay
+    build-depends:    base >=4.14.1.0 && <4.18, stm, stm-delay
     hs-source-dirs:   src
     default-language: Haskell2010
     ghc-options: -Wall -Wcompat
