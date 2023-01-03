@@ -9,7 +9,7 @@ newtype Oath a = Oath { runOath :: forall r. (STM a -> IO r) -> IO r }
 
 `Oath` is a continuation-passing IO action which takes a transaction to obtain the final result (`STM a`).
 The continuation-passing style makes it easier to release resources in time.
-The easiest way to construct `Oath` is `oath`. It run the supplied action in a separate thread as long as the continuation is running.
+The easiest way to construct `Oath` is `oath`. It runs the supplied IO action in a separate thread as long as the continuation is running.
 
 ```haskell
 oath :: IO a -> Oath a
@@ -23,7 +23,7 @@ evalOath :: Oath a -> IO a
 evalOath m = runOath m atomically
 ```
 
-`Oath` is an `Applicative`, so you can combine multiple `Oath`s. It starts computations without waiting for the results. Run `evalOath` to get the final result. The following code run concurrently `foo :: IO a` and `bar :: IO b`, then applies `f` to these results.
+`Oath` is an `Applicative`, so you can combine multiple `Oath`s using `<*>`. `Oath` combined this way kicks off computations without waiting for the results. The following code runs `foo :: IO a` and `bar :: IO b` concurrently, then applies `f` to these results.
 
 ```haskell
 main = evalOath $ f <$> oath foo <*> oath bar
@@ -40,7 +40,7 @@ Usage
 Oath $ \cont -> bracket sendRequest cancelRequest (cont . waitForResponse)
 ```
 
-Timeout behaviour can be easily added using the `Alternative` instance and `delay :: Int -> Oath ()`. Or more in general, `<|>` runs both computations until one of them finishes.
+Timeout behaviour can be easily added using the `Alternative` instance and `delay :: Int -> Oath ()`. `a <|> b` runs both computations until one of them returns a result, then cancels the other.
 
 ```haskell
 -- | An 'Oath' that finishes once the given number of microseconds elapses
@@ -62,7 +62,7 @@ Comparison to other packages
 
 [futures](https://hackage.haskell.org/package/futures-0.1/docs/Futures.html) provides a wrapper of `forkIO`. There is no way to terminate an action and it does not propagate exceptions.
 
-[promise](https://hackage.haskell.org/package/promise-0.1.0.0/docs/Control-Concurrent-Promise.html) has illegal Applicative and Monad instances; `(<*>)` is not associative and has a bind that's not consistent with `(<*>).`
+[promise](https://hackage.haskell.org/package/promise-0.1.0.0/docs/Control-Concurrent-Promise.html) has illegal Applicative and Monad instances; `(<*>)` is not associative and its `ap` is not consistent with `(<*>)`.
 
 Performance
 ----
